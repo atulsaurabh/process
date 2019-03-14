@@ -1,15 +1,20 @@
 package com.technoride.process;
 
 
+import com.technoride.process.task.JobFindAndKill;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Main
 {
     public static void main(String[] args)
     {
-        try {
+
             if (args.length != 1) {
                 System.err.println("Invalid number of command line option");
                 return;
@@ -39,40 +44,12 @@ public class Main
                      }
                      else
                      {
-                         Process p = Runtime.getRuntime().exec
-                                 (System.getenv("windir") +"\\system32\\"+"tasklist.exe /fo csv /nh");
-                         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                         String line="";
-                         while((line= bufferedReader.readLine()) != null )
-                         {
-                             if (line.contains(processToKill))
-                             {
-                                 Process killProcess = Runtime.getRuntime()
-                                         .exec(System.getenv("windir")+"\\system32\\taskkill /F /IM "+processToKill);
+                         ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+                         JobFindAndKill jobFindAndKill = new JobFindAndKill(processToKill);
+                         scheduledExecutorService.scheduleAtFixedRate(jobFindAndKill,0,5,TimeUnit.MINUTES);
 
-                                 BufferedReader killBufferedReader = new BufferedReader(new InputStreamReader(killProcess.getInputStream()));
-                                 Thread.sleep(1000);
-                                 String outputLine = killBufferedReader.readLine();
-                                 if (outputLine.contains("SUCCESS"))
-                                     System.out.println("Process Killed Successfully");
-                                 else
-                                     System.out.println("Process Not Killed Successfully");
-                             }
-
-                         }
                      }
                   }
             }
-
-        }
-        catch (IOException io)
-        {
-
-        }
-        catch (InterruptedException in)
-        {
-
-        }
-
     }
 }
